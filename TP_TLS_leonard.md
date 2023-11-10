@@ -2,6 +2,11 @@
 
 Étudiant : Simon LEONARD <simon.leonard@etu.univ-smb.fr>
 
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });
+</script>
+
 ## Préparation
 
 ### Question 1
@@ -55,7 +60,7 @@ Lors de la connexion en HTTPS, Bob envoie une requête au serveur d'Alice, `www.
 5. Alice déchiffre la clé de session avec sa clé privée
 6. Alice répond à Bob avec la clé de session, la connexion est établie.
 
-## Etude du chiffrement RSA
+## Etude du chiffrement RSA : Génération de clés RSA
 
 En parcourant un peu le manuel, j'ai trouvé que la sous-commande `genpkey` de `openssl` était à privilégier par rapport à l'algorithme "trop spécifique" `genrsa`.
 
@@ -118,12 +123,119 @@ La clé publique est, comme son nom l'indique, publique. Elle peut être distrib
 
 ### Question 7
 
-L'encodage de la clé vu jusqu'a présent qui commence par `BEGIN (ENCRYPTED) PRIVATE KEY` habrite des données utilisant la syntax PKCS#8, encodé au format PEM qui utilise base64 pour afficher des données binaires en ASCII. Si j'avais utilisé la commande `openssl genrsa`, la syntax utilisée aurait été PKCS#1, mais toujours encodé en PEM.
+L'encodage de la clé vu jusqu'a présent qui commence par `BEGIN (ENCRYPTED) (PRIVATE|PUBLIC) KEY` habrite des données utilisant la syntax PKCS#8, le tout encodé au format PEM qui utilise base64 pour afficher des données binaires en ASCII. Si j'avais utilisé la commande `openssl genrsa`, la syntax utilisée aurait été PKCS#1, mais toujours encodé en PEM.
+
+La partie `-----BEGIN...` fait partie de l'encodage PEM.
+
+L'avantage est que les clés PEM est lisible par l'humain. Cela peut avoir des usages variés, comme par exemple envoyer une clé publique par e-mail ou imprimer une clé privée pour la stocker dans un coffre fort.
 
 Sources : 
 * https://unix.stackexchange.com/a/492707
 * https://en.wikipedia.org/wiki/PKCS_8 
 
+### Question 8
+
+```
+[etudiant@tls-ca-leonard ~]$ openssl rsa -pubin -in pub.leonard.pem -text -noout
+Public-Key: (512 bit)
+Modulus:
+    00:db:9a:8a:d2:90:ef:be:e2:c2:f4:ad:89:08:9f:
+    3b:2b:8e:0f:fb:89:43:e7:3f:51:b3:03:de:5d:a2:
+    8e:2f:3f:f0:1d:be:c3:be:2a:cd:88:a4:db:0e:ad:
+    a2:a5:1f:a2:0b:47:a5:6f:e2:d7:d3:c0:c1:69:1b:
+    9b:e5:23:1b:49
+Exponent: 65537 (0x10001)
+```
+
+Nous retrouvons dans la clé publique tout les élements dont nous avons parlé dans la question 2 pour le chiffrement :
+* le modulo $n$ (Modulus)
+* l'exposant $e$ (Exponent)
+
+## Etude du chiffrement RSA : Chiffrement asymétrique
+
+### Question 9
+
+Pour chiffrer un message avec une clé asymétrique RSA, on utilise la clé publique du destinataire dudit message.
+
+### Question 10
+
+Chiffrons un message en utilisant `openssl pkeytul`, dans un but pédaogique :
+
+```bash
+echo "Hello World" > message.txt
+openssl pkeyutl -encrypt -in clair.txt -pubin -inkey pub.leonard.pem -out cipher.bin
+```
+
+### Question 11
+
+Nous cherchons maintenant à chiffrer plusieurs fois le message pour les comparer.
+Je réitère la commande précédente pour avoir 3 fichiers.
+
+J'utilise `hexdump -C` pour avoir un affichage hexadécimal et une interprétation ASCII des fichiers.
+
+Les trois fichiers sont différents, sans aucune partie commune visible : 
+
+```
+[etudiant@tls-ca-leonard bob]$ hexdump cipher.bin -C
+00000000  74 bd c7 96 e6 d1 df dd  dc 76 c6 5c 47 d5 ab 58
+00000010  1a ee cd 01 e3 7c 82 70  84 29 b5 69 77 e2 9e 31
+00000020  9b 63 30 d4 ff a1 42 63  82 3d 8d 35 90 63 4b c3
+00000030  c6 31 57 ce 5e b9 93 69  7d 79 e1 c8 06 1c 64 5c
+00000040
+
+00000000 |t........v.\G..X|
+00000010 |.....|.p.).iw..1|
+00000020 |.c0...Bc.=.5.cK.|
+00000030 |.1W.^..i}y....d\|
+
+[etudiant@tls-ca-leonard bob]$ hexdump cipher.bin.1 -C
+00000000  b5 56 c0 19 14 be 65 09  38 e8 fd e7 af 35 55 41
+00000010  3a 6e 04 d8 55 18 33 ab  c8 3f 2b 41 a4 ff dd 35
+00000020  93 5e be 33 5e f4 4b 5f  73 d8 2c 66 98 7d 8b 5f
+00000030  9b ad 75 c9 c6 96 f0 89  da 0f 89 fd 15 5d 33 11
+00000040
+
+00000000 |.V....e.8....5UA|
+00000010 |:n..U.3..?+A...5|
+00000020 |.^.3^.K_s.,f.}._|
+00000030 |..u..........]3.|
+
+[etudiant@tls-ca-leonard bob]$ hexdump cipher.bin.2 -C
+00000000  97 00 2a 44 14 83 4f 9c  66 84 e7 a2 db 3f a0 bf
+00000010  43 70 f7 71 27 6c c6 d2  ce 34 c5 37 e8 28 80 1e
+00000020  e3 d5 b9 75 0e b5 18 a9  20 19 d1 93 c7 35 44 5f
+00000030  49 36 da 2b f4 91 ac 04  87 43 d5 d3 6c 3d 98 43
+00000040
+
+00000000 |..*D..O.f....?..|
+00000010 |Cp.q'l...4.7.(..|
+00000020 |...u.... ....5D_|
+00000030 |I6.+.....C..l=.C|
+```
+
+Note : l'output des commandes ci-dessus est modifié pour tenir sur le PDF.
+
+Que le message soit différent à chaque fois est une propriété importante du chiffrement asymétrique. Cela permet d'éviter que l'on puisse deviner le message en comparant plusieurs messages chiffrés. 
+
+Cependant, ce n'est pas une fonctionnalité native de RSA, qui est un algorithme déterministe. En réalité, on utilise des bits aléatoires pour chiffrer le texte, en plus de rajouter des `0`.
+
+Pour déchiffrer un message chiffrer :
+
+```bash
+openssl pkeyutl -decrypt -inkey rsa_keys_cyphered.pem -in cipher.bin
+```
+
+Il faut alors renseigner le mot de passe (ou utiliser la version non chiffrer de la clé).
+
+Sources :
+* https://stackoverflow.com/a/16329374 (qui explique pour la commande `openssl rsautl`)
+* https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Padding_schemes
+
+### Question 12
+
+
 ### Question 20
+
+
 
 <!-- CA Racine : 192.168.170.201 -->
