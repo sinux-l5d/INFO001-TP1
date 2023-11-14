@@ -1,0 +1,14 @@
+layout {
+  pane split_direction="vertical"  {
+    pane {
+      command "ssh"
+      name "Serv CA"
+      args "etudiant@192.168.170.85" 
+    }
+    pane {
+      command "ssh"
+      name "Serv TLS"
+      args "etudiant@192.168.170.107" 
+    }
+  }
+}
