@@ -297,7 +297,6 @@ Le lien pointant vers un fichier .crl permet de récupérer la liste des certifi
 
 Source : https://x509errors.org/guides/openssl-crl
 
-
 ### Question 20
 
 
