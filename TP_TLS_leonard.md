@@ -231,6 +231,8 @@ Sources :
 * https://stackoverflow.com/a/16329374 (qui explique pour la commande `openssl rsautl`)
 * https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Padding_schemes
 
+## Analyse du contenu d'un certificat
+
 ### Question 12
 
 l'option `-showcerts` de `openssl s_client` est décrite par le manuel comme suit :
@@ -369,6 +371,8 @@ La formule qui a permis de générer la signature est la même que celle vue en 
 
 $$ S = H(M)^d \pmod{n} $$
 
+## Mise en place d'une PKI (Public Key Infrastructure)
+
 ### Question 20
 
 Connection au serveur CA Root du TP :
@@ -395,4 +399,37 @@ Je peux lire ledit fichier avec la commande suivante :
 openssl rsa -in private/ca.key.pem -text -noout
 ```
 
+### Question 21
 
+J'ai téléchargé le fichier template de `openssl.cnf` dans le nouveau dossier `~/ca` de ma machine `tls-ca-leonard` (que j'utilise depuis le début).
+
+J'ai changé la valeur de CA_default.dir par la suivante :
+
+```
+dir = /home/etudiant/ca
+```
+
+Avec la configuration par défaut, la clé privé se trouvera à `/home/etudiant/ca/private/intermediate.key.pem` et le certificat à `/home/etudiant/ca/certs/intermediate.cert.pem`.
+
+### Question 22
+
+On va donc créer une clé privé RSA de 3076 bits, chiffré avec AES128. Pour ça, je reprend les commandes du début du TP :
+
+```bash
+openssl genpkey -out private/intermediate-uncyphered.key.pem -algorithm RSA -pkeyopt rsa_keygen_bits:3072
+openssl rsa -in private/intermediate-uncyphered.key.pem -aes128 -out private/intermediate.key.pem
+```
+
+### Question 23
+
+La demande de certificat contient déjà une signature. La présence d'une signature à cette étape peut sembler bizarre, étant donné qu'aucune autorité de certification n'a encore signé le certificat. 
+
+La RFC 2886 explique cela de la façon suivante : 
+
+> The signature on the certification request prevents an entity from requesting a certificate with another party's public key. Such an attack would give the entity the minor ability to pretend to be the originator of any message signed by the other party. This attack is significant only if the entity does not know the message being signed and the signed part of the message does not identify the signer. The entity would still not be able to decrypt messages intended for the other party, of course.
+
+La signature permet d'éviter qu'une entité demande un certificat avec la clé publique d'une autre entité. Cela permet d'éviter que l'entité puisse se faire passer pour l'autre entité en signant des messages avec sa clé privée.
+
+Source : https://www.rfc-editor.org/rfc/rfc2986#page-5
+
+### Question 24
