@@ -432,4 +432,43 @@ La signature permet d'éviter qu'une entité demande un certificat avec la clé 
 
 Source : https://www.rfc-editor.org/rfc/rfc2986#page-5
 
+### Notes intermédiaires
+
+#### Mise en place des certificats côté tls-serv-leonard
+
+```bash
+sudo openssl genrsa -out /etc/pki/tls/private/serveur_http.pem 2048
+sudo openssl req -new -key /etc/pki/tls/private/serveur_http.pem -out serveur_http.csr.pem -subj "/C=FR/ST=Rhone/L=Lyon/O=Canut leonard inc./CN=www.leonard.fr" -addext "subjectAltName = DNS:www.leonard.fr, DNS:dev.leonard.fr"
+```
+
+## Mise en place d’un reverse proxy
+
 ### Question 24
+
+nginx-reverse/conf/nginx.conf : 
+```
+events {}
+http {
+  server {
+      listen    80;
+      server_name    www.votre_login.fr;
+
+      listen 443 ssl;
+      ssl_certificate /etc/nginx/ssl/fullchain.pem;
+      ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+
+     # ssl_certificate /etc/nginx/ssl/serveur_http.cert.pem;
+     # ssl_certificate_key /etc/nginx/ssl/serveur_http.pem;
+
+      location / {
+
+          proxy_pass http://web1;
+      }
+
+      location /admin/ {
+
+          proxy_pass http://web2/;
+      }
+  }
+}
+```
