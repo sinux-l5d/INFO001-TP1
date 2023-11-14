@@ -289,7 +289,7 @@ Le certificat de *www.univ-grenoble-alpes.fr*, comme tout certificat, contient l
 
 Le certificat est signé avec l'algorithme `sha256WithRSAEncryption`. Le sujet est `C = FR, ST = Auvergne-Rhône-Alpes, O = Université Grenoble Alpes, CN = *.univ-grenoble-alpes.fr`.
 
-L'attribut `X509v3 Subject Alternative Name` contient les autres noms de machine pour lequel le certificat peut être utilisé.
+L'attribut `X509v3 Subject Alternative Name` contient les autres noms de machine pour lequel le certificat peut être utilisé (ici, `DNS:*.univ-grenoble-alpes.fr, DNS:univ-grenoble-alpes.fr`).
 
 La durée de validité du certificat est de 1 an, du 8 mai 2023 au 7 mai 2024 d'après les champs de `Validity` (`Not Before` et `Not After`).
 
@@ -297,8 +297,102 @@ Le lien pointant vers un fichier .crl permet de récupérer la liste des certifi
 
 Source : https://x509errors.org/guides/openssl-crl
 
+### Question 16
+
+Le certificat de *www.univ-grenoble-alpes.fr* a été signé par *Sectigo RSA Organization Validation Secure Server CA*.
+
+Soit $S$ la signature :
+
+$$
+S = H(M)^d \pmod{n}
+$$
+
+Avec $H$ la fonction de hachage, $M$ le message, $d$ la clé privée et $n$ le modulo.
+
+### Question 17
+
+Je peux afficher tout les certificats de la chaîne de confiance avec la commande suivante :
+
+```bash
+echo | openssl s_client -showcerts -connect www.univ-grenoble-alpes.fr:443 2>/dev/null | sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p'
+```
+
+Voici la chaine de confiance :
+
+```
+ ||
+ || C = GB, ST = Greater Manchester, L = Salford, O = Comodo CA Limited, CN = AAA Certificate Services
+ ||
+ || C = US, ST = New Jersey, L = Jersey City, O = The USERTRUST Network, CN = USERTrust RSA Certification Authority
+ ||
+ || C = GB, ST = Greater Manchester, L = Salford, O = Sectigo Limited, CN = Sectigo RSA Organization Validation Secure Server CA
+ ||
+ || C = FR, ST = Auvergne-Rh\C3\B4ne-Alpes, O = Universit\C3\A9 Grenoble Alpes, CN = *.univ-grenoble-alpes.fr
+ \/
+```
+
+Le CA de *Sectigo Limited* est délivré par *USERTrust RSA Certification Authority*.
+
+La taille de la clé publique est de 2048 bits. Voici l'extrait du certificat qui l'atteste :
+
+```
+Issuer: C = US, ST = New Jersey, L = Jersey City, O = The USERTRUST Network, CN = USERTrust RSA Certification Authority
+Validity
+    Not Before: Nov  2 00:00:00 2018 GMT
+    Not After : Dec 31 23:59:59 2030 GMT
+Subject: C = GB, ST = Greater Manchester, L = Salford, O = Sectigo Limited, CN = Sectigo RSA Organization Validation Secure Server CA
+Subject Public Key Info:
+    Public Key Algorithm: rsaEncryption
+        Public-Key: (2048 bit)
+```
+
+Ce CA est signé par *Comodo CA Limited*, le dernier niveau disponible.
+
+
+### Question 18
+
+Le certificat de plus haut niveau est délivré pour l'entité *AAA Certificate Services*, qui est une autorité de certification racine. Je remarque cependant que le certificat juste en dessous dans notre chaîne de confiance (*USERTrust RSA Certification Authority*) est aussi un certificat racine.
+
+J'ai en effet trouvé les deux certificats dans mon système de fichier, dans `/etc/ssl/certs/`. Ils sont nommés `AAA_Certificate_Services.crt` et `USERTrust_RSA_Certification_Authority.crt`.
+
+L'enseignant m'indique que c'est possible dans le cas ou une autorité rachète une autre autorité. Cela permet de ne pas avoir à changer les certificats déjà délivrés par l'autorité rachetée.
+
+
+### Question 19
+
+<!-- Comparer les champs subject et issuer. Qu’en déduisez-vous ? Donnez la formule qui a
+permis de générer la signature de ce certificat ? Comment s’appelle ce type de certificat ? -->
+
+En regardant le contenu de `AAA_Certificate_Services.crt`, je vois que le champs `Subject` est égal au champs `Issuer`. Cela signifie que le certificat est **auto-signé** et est donc une autorité de certification racine.
+
+La formule qui a permis de générer la signature est la même que celle vue en question 16 :
+
+$$ S = H(M)^d \pmod{n} $$
+
 ### Question 20
 
+Connection au serveur CA Root du TP :
+
+```bash
+ssh camanager@192.168.170.201
+```
+
+Dans le répertoire `/home/camanager/ca`, le fichier de configuration `openssl.cnf` indique que le certificat se trouve à `$dir/certs/ca.cert.pem` avec `$dir` valant `/home/camanager/ca`.
+
+Avec la même commande que précédemment (`openssl x509`), on trouve que la taille de la clé est de 4096 bits. C'est un certificat auto-signé car le champs `Subject` est égal au champs `Issuer`.
+
+Ce certificat peut être utilisé pour les actions suivantes, d'après le champ `X509v3 Key Usage` : `Digital Signature, Certificate Sign, CRL Sign`. Autrement dit pour signer des certificats et des listes de révocation de certificats.
+
+La clé privé se trouve dans le fichier `private/ca.key.pem`, comme l'indique le fichier de configuration `openssl.cnf` :
+
+```
+private_key = $dir/private/ca.key.pem
+```
+
+Je peux lire ledit fichier avec la commande suivante :
+
+```bash
+openssl rsa -in private/ca.key.pem -text -noout
+```
 
 
-<!-- CA Racine : 192.168.170.201 -->
