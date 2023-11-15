@@ -445,30 +445,18 @@ sudo openssl req -new -key /etc/pki/tls/private/serveur_http.pem -out serveur_ht
 
 ### Question 24
 
-nginx-reverse/conf/nginx.conf : 
+Pour l'instant, aucune machine cliente ne fait confiance à l'autorité de certification intermédiaire ou racine de notre PKI. Nous disposons de 3 certificats (CA Root, CA Intermediate et serveur HTTP) et nous voulons que les machines clientes fassent confiance à notre serveur HTTP.
+
+Cependant le mieux est d'indiquer aux machines clientes de faire confiance au certificat de l'autorité de certification racine. Ainsi, les machines clientes valideront tous les certificats délivrés par cette autorité de certification. Cela permet de transmettre un certificat une fois, et qu'il valide tout les sites de mes camarades.
+
+
+### Question 25
+
+Une fois les certificats en place au niveau du serveur, il nous faut modifier le `/etc/hosts` local pour que le nom de domaine `www.leonard.fr` pointe vers l'adresse IP du serveur (ou local, dans notre cas).
+
 ```
-events {}
-http {
-  server {
-      listen    80;
-      server_name    www.votre_login.fr;
-
-      listen 443 ssl;
-      ssl_certificate /etc/nginx/ssl/fullchain.pem;
-      ssl_certificate_key /etc/nginx/ssl/privkey.pem;
-
-     # ssl_certificate /etc/nginx/ssl/serveur_http.cert.pem;
-     # ssl_certificate_key /etc/nginx/ssl/serveur_http.pem;
-
-      location / {
-
-          proxy_pass http://web1;
-      }
-
-      location /admin/ {
-
-          proxy_pass http://web2/;
-      }
-  }
-}
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 www.leonard.fr
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6 www.leonard.fr
 ```
+
+Il suffit de rajouter `www.leonard.fr` à la fin de chaque ligne (bien que l'on n'utilise pas l'IPv6).
