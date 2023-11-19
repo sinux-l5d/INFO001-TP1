@@ -48,4 +48,6 @@ if __name__ == "__main__":
     args = argparse.parse_args()
     HOST = args.host
     PORT = args.port
+    CERT_FILE = args.cert
+    KEY_FILE = args.key
     start_server()

@@ -69,4 +69,5 @@ if __name__ == "__main__":
     DEBUG = args.debug
     HOST = args.server
     PORT = args.port
+    ROOT_CA_FILE = args.root_ca
     start_client()
