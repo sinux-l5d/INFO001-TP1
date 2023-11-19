@@ -58,6 +58,12 @@ if __name__ == "__main__":
     ArgumentParser = argparse.ArgumentParser()
     ArgumentParser.add_argument(
         "-d", "--debug", help="Enable debug mode", action="store_true")
+    ArgumentParser.add_argument(
+        "-s", "--server", help="Server hostname", default=HOST)
+    ArgumentParser.add_argument(
+        "-p", "--port", help="Server port", default=PORT)
     args = ArgumentParser.parse_args()
     DEBUG = args.debug
+    HOST = args.server
+    PORT = args.port
     start_client()

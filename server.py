@@ -2,6 +2,7 @@
 
 import socket
 import ssl
+import argparse
 
 HOST = "127.0.0.1"
 PORT = 6666
@@ -33,4 +34,12 @@ def start_server():
 
 
 if __name__ == "__main__":
+    argparse = argparse.ArgumentParser()
+    argparse.add_argument(
+        "-s", "--host", help="Host to listen on", type=str, default=HOST)
+    argparse.add_argument(
+        "-p", "--port", help="Port to listen on", type=int, default=PORT)
+    args = argparse.parse_args()
+    HOST = args.host
+    PORT = args.port
     start_server()
