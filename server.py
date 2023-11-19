@@ -49,4 +49,9 @@ if __name__ == "__main__":
     PORT = args.port
     CERT_FILE = args.cert
     KEY_FILE = args.key
-    start_server()
+    try:
+        start_server()
+    except KeyboardInterrupt:
+        print("Server stopped")
+    except ConnectionResetError:
+        print("Connection reset by peer")
