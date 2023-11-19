@@ -32,7 +32,7 @@ def verify_cert(cert, expected_hostname):
 
     if DEBUG:
         print("Human-Readable Certificate :")
-        print(cert.decode())
+        print(cert.decode(errors='ignore'))
 
 
 def start_client():
