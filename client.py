@@ -32,7 +32,23 @@ def verify_cert(cert, expected_hostname):
 
     if DEBUG:
         print("Human-Readable Certificate :")
-        print(cert.decode(errors='ignore'))
+        print(x509_cert)
+        print("Issuer :")
+        print(x509_cert.issuer)
+        print("Subject :")
+        print(x509_cert.subject)
+        print("Public Key :")
+        print(x509_cert.public_key())
+        print("Signature :")
+        print(x509_cert.signature)
+        print("Serial Number :")
+        print(x509_cert.serial_number)
+        print("Version :")
+        print(x509_cert.version)
+        print("Extensions :")
+        print(x509_cert.extensions)
+        print("Fingerprint :")
+        print(x509_cert.fingerprint)
 
 
 def start_client():
