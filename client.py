@@ -86,4 +86,7 @@ if __name__ == "__main__":
     HOST = args.server
     PORT = args.port
     ROOT_CA_FILE = args.root_ca
-    start_client()
+    try:
+        start_client()
+    except KeyboardInterrupt:
+        print("Client stopped")
