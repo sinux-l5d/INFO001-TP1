@@ -6,13 +6,15 @@ import argparse
 
 HOST = "127.0.0.1"
 PORT = 6666
+CERT_FILE = "cert.pem"
+KEY_FILE = "key.pem"
 
 
 def start_server():
     # Create a SSL context
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     # Load the server certificate
-    context.load_cert_chain('cert.pem', 'key.pem')
+    context.load_cert_chain(CERT_FILE, KEY_FILE)
 
     # Create a TCP/IP socket, AF_INET for IPv4, SOCK_STREAM for TCP (required by ssl)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -39,6 +41,10 @@ if __name__ == "__main__":
         "-s", "--host", help="Host to listen on", type=str, default=HOST)
     argparse.add_argument(
         "-p", "--port", help="Port to listen on", type=int, default=PORT)
+    argparse.add_argument(
+        "-c", "--cert", help="Certificate file", type=str, default=CERT_FILE)
+    argparse.add_argument(
+        "-k", "--key", help="Key file", type=str, default=KEY_FILE)
     args = argparse.parse_args()
     HOST = args.host
     PORT = args.port

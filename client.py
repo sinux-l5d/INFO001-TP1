@@ -10,6 +10,7 @@ from cryptography.hazmat.backends import default_backend
 # Variables globales
 HOST = "127.0.0.1"
 PORT = 6666
+ROOT_CA_FILE = 'root-ca-lorne.pem'
 
 DEBUG = False
 
@@ -37,7 +38,7 @@ def verify_cert(cert, expected_hostname):
 def start_client():
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     # Use the ROOT CA to verify the server certificate
-    context.load_verify_locations('root-ca-lorne.pem')
+    context.load_verify_locations(ROOT_CA_FILE)
     expected_hostname = HOST  # The hostname we expect to be in the server certificate
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
@@ -62,6 +63,8 @@ if __name__ == "__main__":
         "-s", "--server", help="Server hostname", default=HOST)
     ArgumentParser.add_argument(
         "-p", "--port", help="Server port", default=PORT)
+    ArgumentParser.add_argument(
+        "-r", "--root-ca", help="Root CA file", default=ROOT_CA_FILE)
     args = ArgumentParser.parse_args()
     DEBUG = args.debug
     HOST = args.server
