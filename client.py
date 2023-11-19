@@ -13,6 +13,7 @@ PORT = 6666
 
 DEBUG = False
 
+
 def verify_cert(cert, expected_hostname):
     """Check whenether the certificate is valid for the expected hostname
         It DOES NOT check the validity of the certificate (expiration date, revocation, etc.), 
@@ -20,19 +21,23 @@ def verify_cert(cert, expected_hostname):
     """
     # Load the certificate
     x509_cert = x509.load_der_x509_certificate(cert, default_backend())
-    
+
     # Check the hostname
-    if not x509_cert.subject.rfc4514_string() == f"CN={expected_hostname}":
-        raise ValueError("The certificate is not valid for the expected hostname")
+    CN = x509_cert.subject.get_attributes_for_oid(
+        x509.NameOID.COMMON_NAME)[0].value
+    if not CN == expected_hostname:
+        raise ValueError(
+            "The certificate is not valid for the expected hostname, expected: " + expected_hostname + ", got: " + CN)
 
     if DEBUG:
         print("Human-Readable Certificate :")
-        print(x509_cert)
+        print(cert.decode())
 
 
 def start_client():
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.load_verify_locations('root-ca-lorne.pem')  # Use the ROOT CA to verify the server certificate
+    # Use the ROOT CA to verify the server certificate
+    context.load_verify_locations('root-ca-lorne.pem')
     expected_hostname = HOST  # The hostname we expect to be in the server certificate
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
@@ -48,9 +53,11 @@ def start_client():
                 message = sys.stdin.read(1)
                 secure_socket.send(message.encode())
 
+
 if __name__ == "__main__":
     ArgumentParser = argparse.ArgumentParser()
-    ArgumentParser.add_argument("-d", "--debug", help="Enable debug mode", action="store_true")
+    ArgumentParser.add_argument(
+        "-d", "--debug", help="Enable debug mode", action="store_true")
     args = ArgumentParser.parse_args()
     DEBUG = args.debug
     start_client()
