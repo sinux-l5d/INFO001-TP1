@@ -27,11 +27,10 @@ def start_server():
             with conn:
                 print('Beginning of transmission', addr)
                 while True:
-                    # receive one caracter at a time (I find it fun)
-                    data = conn.recv(1)
+                    data = conn.recv(1024)
                     if not data:
                         break
-                    print(data.decode(), end="")
+                    print(data.decode())
                 print("\nEnd of transmission")
 
 

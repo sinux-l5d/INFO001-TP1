@@ -51,7 +51,7 @@ def start_client():
 
             print("Type in, Ctrl+C to exit")
             while True:
-                message = sys.stdin.read(1)
+                message = input()
                 secure_socket.send(message.encode())
 
 
