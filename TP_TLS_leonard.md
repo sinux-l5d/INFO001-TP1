@@ -460,3 +460,28 @@ Une fois les certificats en place au niveau du serveur, il nous faut modifier le
 ```
 
 Il suffit de rajouter `www.leonard.fr` à la fin de chaque ligne (bien que l'on n'utilise pas l'IPv6).
+
+## Développement de logiciels client et serveur sécurisé par TLS
+
+Pour cette partie, j'ai réalisé un client et un serveur en python (`client.py` et `server.py` respectivement).
+
+### Question 26
+
+Pour tester mon application, j'ai lancé sur la même machine le client et le serveur dans deux terminaux différents :
+
+```bash
+./server.py -s www.leonard.fr -c fullchain.pem -k privkey.pem
+./client.py --debug -s www.leonard.fr
+```
+
+Je commence la capture du port 6666 sur l'adresse de loopback (127.0.0.1, interface lo) et envoie des messages depuis le client. La commande pour capturer le flux réseau :
+
+```bash
+sudo tcpdump -i lo port 6666 -w server_capture.pcap
+```
+
+J'ai ensuite peut analyser le contenu de la capture en local avec Wireshark. J'ai pu voir que le client et le serveur ont bien échangé des messages chiffrés avec TLS.
+
+Voici un extrait de la capture :
+
+![Capture de wireshark montrant que la connexion est chiffré](./capture.png)
